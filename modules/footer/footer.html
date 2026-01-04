@@ -1,0 +1,142 @@
+<!-- Модуль футера DreamCalc -->
+<footer class="dreamcalc-footer mt-5 pt-4 border-top">
+    <div class="container">
+        <!-- Основная информация -->
+        <div class="row align-items-center">
+            <!-- Лого и описание -->
+            <div class="col-lg-4 mb-3 mb-lg-0">
+                <div class="footer-brand">
+                    <span class="footer-icon">🎯</span>
+                    <span class="footer-title">DreamCalc</span>
+                </div>
+                <p class="footer-description mt-2">
+                    Калькулятор финансовых целей для планирования вашей мечты
+                </p>
+                <div class="footer-version">
+                    <small class="text-muted">Версия 2.0.0 • PWA</small>
+                </div>
+            </div>
+
+            <!-- Быстрые ссылки -->
+            <div class="col-lg-4 mb-3 mb-lg-0">
+                <h6 class="footer-heading">Быстрые ссылки</h6>
+                <ul class="footer-links list-unstyled">
+                    <li><a href="#" onclick="FooterModule.scrollToTop()" class="footer-link">🔝 Наверх</a></li>
+                    <li><a href="#" onclick="app.showHistory()" class="footer-link">📊 История расчётов</a></li>
+                    <li><a href="#" onclick="FooterModule.toggleTheme()" class="footer-link">🌓 Сменить тему</a></li>
+                    <li><a href="https://github.com/UmedTJK/DreamCalc/issues" target="_blank" class="footer-link">🐛 Сообщить об ошибке</a></li>
+                    <li><a href="#" class="footer-link">📖 Документация</a></li>
+                </ul>
+            </div>
+
+            <!-- Информация о проекте -->
+            <div class="col-lg-4">
+                <h6 class="footer-heading">О проекте</h6>
+                <ul class="footer-links list-unstyled">
+                    <li><a href="https://github.com/UmedTJK/DreamCalc" target="_blank" class="footer-link">📂 GitHub репозиторий</a></li>
+                    <li><a href="https://umedtjk.github.io/DreamCalc/" target="_blank" class="footer-link">🌐 Живая демо</a></li>
+                    <li class="footer-stats" id="footer-stats">
+                        <!-- Статистика загрузится через JS -->
+                        <span class="spinner-border spinner-border-sm" role="status"></span>
+                        Загрузка статистики...
+                    </li>
+                    <li class="footer-status" id="footer-status">
+                        <span class="status-indicator online"></span>
+                        <span>Онлайн</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Разделитель -->
+        <hr class="footer-divider">
+
+        <!-- Нижняя часть -->
+        <div class="row align-items-center">
+            <!-- Авторские права -->
+            <div class="col-md-6 mb-2 mb-md-0">
+                <div class="footer-copyright">
+                    © 2026 DreamCalc • Разработано с ❤️ для финансовой грамотности
+                </div>
+                <div class="footer-license">
+                    <small class="text-muted">
+                        <a href="https://github.com/UmedTJK/DreamCalc/blob/main/LICENSE" target="_blank" class="footer-link">MIT Лицензия</a>
+                        • 
+                        <a href="#" onclick="FooterModule.showCredits()" class="footer-link">Благодарности</a>
+                    </small>
+                </div>
+            </div>
+
+            <!-- Социальные сети и кнопки -->
+            <div class="col-md-6">
+                <div class="footer-actions d-flex justify-content-md-end gap-2">
+                    <!-- Кнопка установки PWA -->
+                    <button id="install-button" class="btn btn-sm btn-outline-success footer-btn" style="display: none;">
+                        📱 Установить
+                    </button>
+                    
+                    <!-- Кнопка поделиться -->
+                    <button onclick="app.shareResults()" class="btn btn-sm btn-outline-primary footer-btn">
+                        📤 Поделиться
+                    </button>
+                    
+                    <!-- Кнопка репозитория -->
+                    <a href="https://github.com/UmedTJK/DreamCalc" target="_blank" class="btn btn-sm btn-outline-dark footer-btn">
+                        ⭐ GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Техническая информация (скрыта по умолчанию) -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <button class="btn btn-sm btn-link text-muted p-0" type="button" 
+                        data-bs-toggle="collapse" data-bs-target="#techInfo">
+                    🔧 Техническая информация
+                </button>
+                
+                <div class="collapse" id="techInfo">
+                    <div class="card card-body mt-2 p-2 bg-light">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <small><strong>Статус:</strong> <span id="tech-status">Загрузка...</span></small>
+                            </div>
+                            <div class="col-md-4">
+                                <small><strong>Память:</strong> <span id="tech-memory">Загрузка...</span></small>
+                            </div>
+                            <div class="col-md-4">
+                                <small><strong>Версия:</strong> v2.0.0 (PWA)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно благодарностей -->
+    <div class="modal fade" id="creditsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">🙏 Благодарности</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>DreamCalc использует следующие открытые технологии:</p>
+                    <ul>
+                        <li><strong>Bootstrap 5</strong> — CSS фреймворк</li>
+                        <li><strong>Chart.js</strong> — библиотека графиков</li>
+                        <li><strong>Inter</strong> — шрифт от Google Fonts</li>
+                        <li><strong>GitHub Pages</strong> — бесплатный хостинг</li>
+                    </ul>
+                    <p>Особая благодарность всем тестерам и контрибьюторам проекта!</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>

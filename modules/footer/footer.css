@@ -1,0 +1,246 @@
+/* 
+ * Стили для модуля футера DreamCalc
+ * Версия: 2.0.0
+ */
+
+/* Основные стили футера */
+.dreamcalc-footer {
+    background-color: var(--footer-bg, #f8f9fa);
+    color: var(--footer-text, #6c757d);
+    transition: all 0.3s ease;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Тёмная тема */
+[data-theme="dark"] .dreamcalc-footer {
+    --footer-bg: #212529;
+    --footer-text: #adb5bd;
+    --footer-link: #6ea8fe;
+    --footer-link-hover: #a6d5fa;
+}
+
+/* Бренд футера */
+.footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.footer-icon {
+    font-size: 2rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+.footer-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--footer-text, #495057);
+    background: linear-gradient(45deg, #2563eb, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.footer-description {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    max-width: 300px;
+    opacity: 0.8;
+}
+
+.footer-version {
+    margin-top: 5px;
+    font-size: 0.8rem;
+}
+
+/* Заголовки разделов */
+.footer-heading {
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--footer-text, #495057);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Ссылки */
+.footer-links {
+    margin: 0;
+    padding: 0;
+}
+
+.footer-links li {
+    margin-bottom: 10px;
+}
+
+.footer-link {
+    color: var(--footer-link, #2563eb);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+}
+
+.footer-link:hover {
+    color: var(--footer-link-hover, #1d4ed8);
+    transform: translateX(3px);
+    text-decoration: none;
+}
+
+/* Статистика и статус */
+.footer-stats {
+    padding: 8px 0;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.footer-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-indicator.online {
+    background-color: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: pulse 2s infinite;
+}
+
+.status-indicator.offline {
+    background-color: #ef4444;
+}
+
+.status-indicator.slow {
+    background-color: #f59e0b;
+}
+
+/* Разделитель */
+.footer-divider {
+    margin: 1.5rem 0;
+    opacity: 0.2;
+    border-color: currentColor;
+}
+
+/* Авторские права */
+.footer-copyright {
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.footer-license {
+    font-size: 0.8rem;
+}
+
+/* Кнопки действий */
+.footer-actions {
+    flex-wrap: wrap;
+}
+
+.footer-btn {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    border-width: 2px;
+}
+
+.footer-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Техническая информация */
+#techInfo .card {
+    font-size: 0.8rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Анимации */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .footer-brand {
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .footer-description {
+        margin: 0 auto;
+        text-align: center;
+    }
+    
+    .footer-heading {
+        text-align: center;
+    }
+    
+    .footer-links {
+        text-align: center;
+    }
+    
+    .footer-actions {
+        justify-content: center !important;
+        margin-top: 10px;
+    }
+    
+    .footer-copyright, .footer-license {
+        text-align: center;
+    }
+}
+
+/* Эффекты при наведении на весь футер */
+.dreamcalc-footer:hover {
+    box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.05);
+}
+
+/* Специальные стили для PWA */
+@media (display-mode: standalone) {
+    .dreamcalc-footer {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* Анимация появления */
+.dreamcalc-footer {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

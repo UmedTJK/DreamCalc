@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,7 +26,6 @@
 
     <!-- Манифест PWA -->
     <link rel="manifest" href="manifest.json">
-    
 
     <!-- Chart.js для графиков -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -36,7 +35,9 @@
     
     <!-- Наши стили -->
     <link rel="stylesheet" href="./styles/main.css">
-
+    
+    <!-- Стили футера -->
+    <link rel="stylesheet" href="./modules/footer/footer.css">
     
     <!-- Шрифт Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,10 +61,13 @@
             <!-- Компоненты будут рендериться здесь -->
         </main>
 
-        <!-- Подвал -->
-        <footer class="mt-5 pt-4 border-top text-center text-muted">
-            <p>DreamCalc v1.0 • Разработано с ❤️ для финансовой грамотности</p>
-        </footer>
+        <!-- Контейнер для динамически загружаемого футера -->
+        <div id="footer-container">
+            <!-- Временно показываем простой футер -->
+            <footer class="mt-5 pt-4 border-top text-center text-muted">
+                <p>DreamCalc v2.0.0 • Разработано с ❤️ для финансовой грамотности</p>
+            </footer>
+        </div>
     </div>
 
     <!-- Bootstrap JS + Popper -->
@@ -71,84 +75,92 @@
     
     <!-- Наши JavaScript-модули -->
     <script type="module" src="./scripts/app.js"></script>
-
-
+    
+    <!-- Модуль футера -->
+    <script type="module" src="./modules/footer/footer.js"></script>
 
     <script>
-// Регистрация Service Worker для PWA
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-        navigator.serviceWorker.register('service-worker.js')
-            .then(function(registration) {
-                console.log('ServiceWorker зарегистрирован успешно:', registration.scope);
-                
-                // Периодически проверяем обновления
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    console.log('Найдено обновление ServiceWorker');
+    // Регистрация Service Worker для PWA
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(function(registration) {
+                    console.log('ServiceWorker зарегистрирован успешно:', registration.scope);
                     
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            console.log('Новая версия доступна. Перезагрузите страницу.');
-                            // Можно показать уведомление пользователю
-                        }
+                    // Периодически проверяем обновления
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        console.log('Найдено обновление ServiceWorker');
+                        
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('Новая версия доступна. Перезагрузите страницу.');
+                                // Можно показать уведомление пользователю
+                                if (window.FooterModule && window.FooterModule.showNotification) {
+                                    window.FooterModule.showNotification(
+                                        '🔄 Доступно обновление! Перезагрузите страницу.', 
+                                        'info'
+                                    );
+                                }
+                            }
+                        });
                     });
+                })
+                .catch(function(error) {
+                    console.log('Ошибка регистрации ServiceWorker:', error);
                 });
+        });
+    }
+
+    // Динамическая загрузка футера после загрузки страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('./modules/footer/footer.html')
+            .then(response => {
+                if (!response.ok) throw new Error('Файл футера не найден (404)');
+                return response.text();
             })
-            .catch(function(error) {
-                console.log('Ошибка регистрации ServiceWorker:', error);
+            .then(html => {
+                const container = document.getElementById('footer-container');
+                if (container) {
+                    container.innerHTML = html;
+                    console.log('✅ Модуль футера загружен успешно');
+                    
+                    // Уведомляем о загрузке
+                    setTimeout(() => {
+                        if (window.FooterModule && window.FooterModule.showNotification) {
+                            window.FooterModule.showNotification('🎯 Футер успешно загружен', 'success');
+                        }
+                    }, 1000);
+                }
+            })
+            .catch(error => {
+                console.error('❌ Ошибка загрузки футера:', error);
+                // Фолбэк: оставляем простой футер который уже есть в контейнере
+                const container = document.getElementById('footer-container');
+                if (container) {
+                    container.innerHTML = `
+                        <footer class="mt-5 pt-4 border-top text-center text-muted">
+                            <p>DreamCalc v2.0.0 • Разработано с ❤️ для финансовой грамотности</p>
+                            <p class="small text-danger">Модуль футера не загружен: ${error.message}</p>
+                        </footer>
+                    `;
+                }
             });
     });
-}
 
-// Проверяем возможность установки PWA
-let deferredPrompt;
-const installButton = document.createElement('button');
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    // Предотвращаем автоматическое отображение подсказки
-    e.preventDefault();
-    deferredPrompt = e;
-    
-    // Показываем кнопку установки
-    installButton.textContent = '📱 Установить DreamCalc';
-    installButton.className = 'btn btn-success position-fixed bottom-3 end-3 shadow-lg';
-    installButton.style.zIndex = '1000';
-    installButton.style.display = 'block';
-    
-    installButton.addEventListener('click', async () => {
-        if (!deferredPrompt) return;
+    // Глобальная обработка ошибок для лучшего UX
+    window.addEventListener('error', function(event) {
+        console.error('Глобальная ошибка:', event.error);
         
-        // Показываем подсказку установки
-        deferredPrompt.prompt();
-        
-        // Ждём ответ пользователя
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`Пользователь ${outcome} установку`);
-        
-        // Очищаем ссылку
-        deferredPrompt = null;
-        
-        // Скрываем кнопку
-        installButton.style.display = 'none';
+        // Показываем дружелюбное сообщение пользователю
+        if (window.FooterModule && window.FooterModule.showNotification) {
+            window.FooterModule.showNotification(
+                '⚠️ Произошла ошибка. Пожалуйста, обновите страницу.', 
+                'error'
+            );
+        }
     });
-    
-    document.body.appendChild(installButton);
-});
-
-// Отслеживаем событие успешной установки
-window.addEventListener('appinstalled', (evt) => {
-    console.log('DreamCalc успешно установлен!');
-    if (installButton.parentNode) {
-        installButton.parentNode.removeChild(installButton);
-    }
-    
-    // Можно отправить аналитику или показать приветственное сообщение
-    if (window.app && window.app.showNotification) {
-        window.app.showNotification('🎉 DreamCalc установлен! Доступен с домашнего экрана.', 'success');
-    }
-});
-</script>
+    </script>
 
 </body>
 </html>
