@@ -1,0 +1,90 @@
+/* ===== DreamCalc Custom Styles ===== */
+
+/* Кастомные переменные поверх Bootstrap */
+:root {
+    --dream-primary: #2563eb;
+    --dream-secondary: #7c3aed;
+    --dream-success: #10b981;
+    --dream-light: #f8fafc;
+    --dream-border: #e2e8f0;
+}
+
+/* Общие стили */
+body {
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    min-height: 100vh;
+}
+
+/* Карточки целей */
+.dream-card {
+    transition: all 0.3s ease;
+    border: 2px solid var(--dream-border);
+    cursor: pointer;
+}
+
+.dream-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--dream-primary);
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.1);
+}
+
+.dream-card.selected {
+    border-color: var(--dream-primary);
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+/* Иконки целей */
+.dream-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Поля ввода */
+.dream-input {
+    border: 1px solid var(--dream-border);
+    transition: all 0.2s ease;
+}
+
+.dream-input:focus {
+    border-color: var(--dream-primary);
+    box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.25);
+}
+
+/* Кнопка расчёта */
+.btn-dream {
+    background: linear-gradient(135deg, var(--dream-primary) 0%, var(--dream-secondary) 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-dream:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+}
+
+/* Результаты */
+.results-card {
+    background: white;
+    border-left: 5px solid var(--dream-success);
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .dream-icon {
+        font-size: 2rem;
+    }
+    
+    .display-5 {
+        font-size: 2rem;
+    }
+}
