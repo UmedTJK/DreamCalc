@@ -1,5 +1,11 @@
 # 🎯 DreamCalc — Калькулятор финансовых целей
 
+![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-success)
+![License](https://img.shields.io/badge/License-MIT-blue)
+![Version](https://img.shields.io/badge/Version-1.0.0-orange)
+
+**🚀 Живая демо:** [https://umedtjk.github.io/DreamCalc/](https://umedtjk.github.io/DreamCalc/)
+
 Веб-приложение для расчёта сроков достижения финансовых целей с учётом накоплений и инвестиций.
 
 ## 🚀 Стек
@@ -9,26 +15,36 @@
 - GitHub Pages (хостинг)
 
 ## 📁 Структура проекта
+```
 DreamCalc/
-├── src/
-│ ├── index.html # Главный HTML
-│ ├── styles/ # Стили
-│ ├── scripts/ # JavaScript-модули
-│ └── images/ # Изображения
-├── docs/ # Документация
-├── assets/ # Статические файлы
-├── README.md # Описание проекта
-└── ROADMAP.md # План развития
-
-text
+├── index.html          # Главный HTML
+├── styles/             # Стили (main.css)
+├── scripts/            # JavaScript-модули
+│   ├── app.js         # Главный модуль
+│   ├── calculator.js  # Логика расчётов
+│   ├── uiComponents.js # UI компоненты
+│   ├── dreamData.js   # Данные целей
+│   └── utils.js       # Утилиты
+├── docs/               # Документация
+├── assets/             # Статические файлы
+├── README.md           # Описание проекта
+└── ROADMAP.md          # План развития
+```
 
 ## 🏃‍♂️ Быстрый старт
-1. Клонируй репозиторий
-2. Открой `src/index.html` в браузере
-3. Начни использовать калькулятор
+1. **Онлайн:** Перейди по [демо-ссылке](https://umedtjk.github.io/DreamCalc/)
+2. **Локально:** 
+   ```bash
+   git clone https://github.com/UmedTJK/DreamCalc.git
+   cd DreamCalc
+   open index.html
+   ```
+
+## 🎮 Использование
+1. Выберите цель (телефон, автомобиль, квартира и т.д.)
+2. Введите параметры накоплений
+3. Нажмите "Рассчитать план"
+4. Получите детальный план с датой достижения цели
 
 ## 📬 Обратная связь
-Предложения и баги — в Issues проекта.
-
----
-Разработано с ❤️ на macOS + VS Code.
+Предложения и баги — в [Issues](https://github.com/UmedTJK/DreamCalc/issues) проекта.
