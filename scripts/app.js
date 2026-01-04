@@ -29,6 +29,9 @@ class DreamCalcApp {
             isLoading: false
         };
         
+        // Проверяем онлайн/оффлайн статус
+        this.isOnline = navigator.onLine;
+        
         // Менеджер хранилища
         this.storageManager = storageManager;
         
@@ -66,7 +69,27 @@ class DreamCalcApp {
         // Автоматический выбор тестовой цели
         this.selectDream('car');
         
+        // Добавляем обработчики онлайн/оффлайн статуса
+        window.addEventListener('online', () => this.checkConnectionStatus());
+        window.addEventListener('offline', () => this.checkConnectionStatus());
+        
         debugLog('Приложение готово к работе', 'log');
+    }
+    
+    /**
+     * Проверяет онлайн статус и показывает уведомление
+     */
+    checkConnectionStatus() {
+        const wasOnline = this.isOnline;
+        this.isOnline = navigator.onLine;
+        
+        if (wasOnline && !this.isOnline) {
+            this.showNotification('📴 Перешли в оффлайн-режим. История доступна.', 'warning');
+        } else if (!wasOnline && this.isOnline) {
+            this.showNotification('🌐 Соединение восстановлено!', 'success');
+        }
+        
+        return this.isOnline;
     }
     
     /**
