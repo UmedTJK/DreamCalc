@@ -9,6 +9,7 @@ import { calculator, quickCalculate, formatResults } from './calculator.js';
 import { renderDreamGrid, renderInputForm } from './uiComponents.js';
 import { getDreamByType, dreams } from './dreamData.js';
 import { validateInput, debugLog, formatCurrency } from './utils.js';
+import { chartManager } from './charts.js';
 
 /**
  * Класс главного приложения
@@ -30,6 +31,9 @@ class DreamCalcApp {
         
         // Менеджер хранилища
         this.storageManager = storageManager;
+        
+        // Менеджер графиков
+        this.chartManager = chartManager;
         
         // Ссылки на DOM-элементы
         this.elements = {
@@ -418,6 +422,39 @@ class DreamCalcApp {
                             </div>
                         </div>
                     </div>
+
+                    <!-- График прогресса -->
+                    <div class="card mt-4">
+                        <div class="card-body">
+                            <div style="position: relative; height: 300px;">
+                                <canvas id="savings-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Дополнительные графики -->
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div style="position: relative; height: 250px;">
+                                        <canvas id="distribution-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        ${results.analysis.scenarios && results.analysis.scenarios.length > 0 ? `
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div style="position: relative; height: 250px;">
+                                        <canvas id="scenarios-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
                     
                     <!-- Анализ и советы -->
                     ${results.analysis ? `
@@ -462,7 +499,10 @@ class DreamCalcApp {
                             🔄 Пересчитать
                         </button>
                         <button class="btn btn-success" onclick="app.shareResults()">
-                            📤 Поделиться результатами
+                            📤 Поделиться
+                        </button>
+                        <button class="btn btn-outline-info" onclick="app.exportChart()">
+                            📊 Экспорт графика
                         </button>
                     </div>
                 </div>
@@ -476,6 +516,39 @@ class DreamCalcApp {
             behavior: 'smooth', 
             block: 'start' 
         });
+
+        // Создаём графики
+        setTimeout(() => {
+            // Основной график накоплений
+            const savingsCanvas = document.getElementById('savings-chart');
+            if (savingsCanvas) {
+                this.chartManager.createSavingsChart(
+                    savingsCanvas,
+                    results.formData,
+                    results
+                );
+            }
+
+            // Круговая диаграмма распределения
+            const distributionCanvas = document.getElementById('distribution-chart');
+            if (distributionCanvas) {
+                this.chartManager.createDistributionChart(
+                    distributionCanvas,
+                    results.formData
+                );
+            }
+
+            // График сценариев (если есть)
+            if (results.analysis.scenarios && results.analysis.scenarios.length > 0) {
+                const scenariosCanvas = document.getElementById('scenarios-chart');
+                if (scenariosCanvas) {
+                    this.chartManager.createScenariosChart(
+                        scenariosCanvas,
+                        results.analysis.scenarios
+                    );
+                }
+            }
+        }, 100);
     }
     
     /**
@@ -510,6 +583,28 @@ class DreamCalcApp {
      */
     setState(newState) {
         this.state = { ...this.state, ...newState };
+    }
+
+    /**
+     * Экспортирует график как изображение
+     */
+    exportChart() {
+        const imageUrl = this.chartManager.exportAsImage();
+        
+        if (!imageUrl) {
+            this.showNotification('Нет графика для экспорта', 'warning');
+            return;
+        }
+        
+        // Создаём временную ссылку для скачивания
+        const a = document.createElement('a');
+        a.href = imageUrl;
+        a.download = `dreamcalc_chart_${new Date().toISOString().slice(0,10)}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        this.showNotification('График экспортирован как PNG', 'success');
     }
 
     /**
@@ -789,6 +884,9 @@ class DreamCalcApp {
             results: null,
             isLoading: false
         };
+        
+        // Уничтожаем графики
+        this.chartManager.destroy();
         
         // Перерендериваем интерфейс
         this.renderDreamGrid();
