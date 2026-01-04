@@ -166,7 +166,8 @@ export class StorageManager {
                 totalCalculations: 0,
                 mostCommonGoal: '—',
                 totalAmount: 0,
-                averageTime: 0
+                averageTime: 0,
+                statistics
             };
         }
 

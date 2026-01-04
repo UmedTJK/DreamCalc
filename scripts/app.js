@@ -38,6 +38,9 @@ class DreamCalcApp {
         // Менеджер графиков
         this.chartManager = chartManager;
         
+        // Модуль футера
+        this.footerModule = null;
+        
         // Ссылки на DOM-элементы
         this.elements = {
             mainContent: null,
@@ -73,7 +76,57 @@ class DreamCalcApp {
         window.addEventListener('online', () => this.checkConnectionStatus());
         window.addEventListener('offline', () => this.checkConnectionStatus());
         
+        // Инициализация модуля футера после загрузки
+        this.initFooterModule();
+        
         debugLog('Приложение готово к работе', 'log');
+    }
+    
+    /**
+     * Инициализация модуля футера
+     */
+    initFooterModule() {
+        // Ждем загрузки модуля футера
+        const checkFooterModule = () => {
+            if (window.FooterModule) {
+                this.footerModule = window.FooterModule;
+                debugLog('Модуль футера подключен', 'log');
+                
+                // Устанавливаем сохраненную тему если есть
+                const savedTheme = localStorage.getItem('dreamcalc-theme');
+                if (savedTheme && this.footerModule.setTheme) {
+                    this.footerModule.setTheme(savedTheme);
+                }
+                
+                // Обновляем статистику в футере
+                setTimeout(() => {
+                    if (this.footerModule.refreshStats) {
+                        this.footerModule.refreshStats();
+                    }
+                }, 1000);
+                
+                return true;
+            }
+            return false;
+        };
+        
+        // Пытаемся сразу
+        if (!checkFooterModule()) {
+            // Если не сразу, ждем немного
+            const intervalId = setInterval(() => {
+                if (checkFooterModule()) {
+                    clearInterval(intervalId);
+                }
+            }, 500);
+            
+            // Останавливаем через 10 секунд если не загрузился
+            setTimeout(() => {
+                clearInterval(intervalId);
+                if (!this.footerModule) {
+                    debugLog('Модуль футера не загрузился', 'warn');
+                }
+            }, 10000);
+        }
     }
     
     /**
@@ -345,6 +398,11 @@ class DreamCalcApp {
 
             // Сохраняем в историю
             this.storageManager.saveCalculation(calculationData, results);
+
+            // Обновляем статистику в футере
+            if (this.footerModule && this.footerModule.refreshStats) {
+                this.footerModule.refreshStats();
+            }
 
             // Форматируем результаты для отображения
             const formattedResults = formatResults({
@@ -744,6 +802,9 @@ class DreamCalcApp {
             container.innerHTML = historyHTML;
             container.style.display = 'block';
         }
+        
+        // Прокручиваем к истории
+        container.scrollIntoView({ behavior: 'smooth' });
     }
 
     /**
@@ -777,6 +838,11 @@ class DreamCalcApp {
             this.storageManager.removeCalculation(id);
             this.showHistory(); // Обновляем отображение
             this.showNotification('Расчёт удалён', 'success');
+            
+            // Обновляем статистику в футере
+            if (this.footerModule && this.footerModule.refreshStats) {
+                this.footerModule.refreshStats();
+            }
         }
     }
 
@@ -811,6 +877,11 @@ class DreamCalcApp {
                 historyContainer.style.display = 'none';
             }
             this.showNotification('История очищена', 'success');
+            
+            // Обновляем статистику в футере
+            if (this.footerModule && this.footerModule.refreshStats) {
+                this.footerModule.refreshStats();
+            }
         }
     }
 
@@ -884,7 +955,13 @@ class DreamCalcApp {
             </div>
         `;
         
-        document.querySelector('footer').prepend(debugPanel);
+        // Добавляем в футер если есть, иначе в конец main-content
+        const footer = document.querySelector('footer') || document.querySelector('.dreamcalc-footer');
+        if (footer) {
+            footer.prepend(debugPanel);
+        } else {
+            this.elements.mainContent.appendChild(debugPanel);
+        }
     }
     
     /**
@@ -892,6 +969,7 @@ class DreamCalcApp {
      */
     printState() {
         console.log('📊 Состояние приложения:', this.state);
+        console.log('📊 Состояние футера:', this.footerModule ? this.footerModule.stats : 'Не загружен');
         debugLog('Состояние выведено в консоль', 'log');
     }
     
@@ -923,6 +1001,11 @@ class DreamCalcApp {
         if (historyContainer) {
             historyContainer.innerHTML = '';
             historyContainer.style.display = 'none';
+        }
+        
+        // Обновляем статистику в футере
+        if (this.footerModule && this.footerModule.refreshStats) {
+            this.footerModule.refreshStats();
         }
         
         debugLog('Приложение сброшено', 'log');
@@ -971,11 +1054,24 @@ class DreamCalcApp {
         } else {
             // Копируем в буфер обмена
             navigator.clipboard.writeText(text)
-                .then(() => alert('Результаты скопированы в буфер обмена! 📋'))
-                .catch(() => alert('Не удалось скопировать результаты'));
+                .then(() => {
+                    this.showNotification('Результаты скопированы в буфер обмена! 📋', 'success');
+                })
+                .catch(() => {
+                    this.showError('Не удалось скопировать результаты');
+                });
         }
         
         debugLog('Результаты отправлены', 'log');
+    }
+    
+    /**
+     * Обновляет статистику в футере (публичный метод)
+     */
+    refreshFooterStats() {
+        if (this.footerModule && this.footerModule.refreshStats) {
+            this.footerModule.refreshStats();
+        }
     }
 }
 
