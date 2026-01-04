@@ -1,0 +1,38 @@
+# macOS системные файлы
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Файлы IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# Логи и кэши
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Временные файлы
+tmp/
+temp/
+
+# Деплой
+dist/
+build/
+
+# Среда разработки
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Исключаем большие файлы
+*.zip
+*.tar
+*.gz
+
+# Исключаем резервные копии
+*.bak
