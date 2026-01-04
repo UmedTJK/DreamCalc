@@ -4,6 +4,7 @@
  */
 
 // Импортируем все необходимые модули
+import { storageManager } from './storage.js';
 import { calculator, quickCalculate, formatResults } from './calculator.js';
 import { renderDreamGrid, renderInputForm } from './uiComponents.js';
 import { getDreamByType, dreams } from './dreamData.js';
@@ -26,6 +27,9 @@ class DreamCalcApp {
             results: null,
             isLoading: false
         };
+        
+        // Менеджер хранилища
+        this.storageManager = storageManager;
         
         // Ссылки на DOM-элементы
         this.elements = {
@@ -119,6 +123,15 @@ class DreamCalcApp {
                     <div id="results-placeholder"></div>
                 </div>
             </div>
+
+            <div class="d-flex gap-2 justify-content-center mt-3">
+                <button class="btn btn-outline-secondary" onclick="app.showHistory()">
+                    📊 История расчётов
+                </button>
+            </div>
+
+            <!-- Контейнер для истории -->
+            <div id="history-container" style="display: none;"></div>
         `;
         
         // Сохраняем ссылки на контейнеры
@@ -295,6 +308,17 @@ class DreamCalcApp {
             // Используем наш калькулятор
             const results = calculator.calculatePlan(formData);
             
+            // Подготовка данных для сохранения
+            const calculationData = {
+                dreamName: this.state.selectedDream,
+                totalCost: formData.totalCost,
+                initialAmount: formData.initialAmount,
+                monthlySave: formData.monthlySave
+            };
+
+            // Сохраняем в историю
+            this.storageManager.saveCalculation(calculationData, results);
+
             // Форматируем результаты для отображения
             const formattedResults = formatResults({
                 ...results,
@@ -455,7 +479,7 @@ class DreamCalcApp {
     }
     
     /**
-     * Показываем ошибку
+     * Показывает ошибку
      * @param {string} message - Сообщение об ошибке
      */
     showError(message) {
@@ -486,6 +510,235 @@ class DreamCalcApp {
      */
     setState(newState) {
         this.state = { ...this.state, ...newState };
+    }
+
+    /**
+     * Показывает историю расчётов
+     */
+    showHistory() {
+        const history = this.storageManager.getHistory();
+        const stats = this.storageManager.getStatistics();
+        
+        if (history.length === 0) {
+            this.showNotification('История расчётов пуста', 'info');
+            return;
+        }
+
+        const historyHTML = `
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">📊 История расчётов</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Статистика -->
+                    <div class="row mb-3">
+                        <div class="col-md-3 col-6">
+                            <div class="card bg-info bg-opacity-10">
+                                <div class="card-body text-center p-2">
+                                    <div class="h6 text-muted">Всего расчётов</div>
+                                    <div class="h4 fw-bold">${stats.totalCalculations}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="card bg-info bg-opacity-10">
+                                <div class="card-body text-center p-2">
+                                    <div class="h6 text-muted">Частая цель</div>
+                                    <div class="h6 fw-bold">${stats.mostCommonGoal}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="card bg-info bg-opacity-10">
+                                <div class="card-body text-center p-2">
+                                    <div class="h6 text-muted">Сумма целей</div>
+                                    <div class="h6 fw-bold">${formatCurrency(stats.totalAmount)}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="card bg-info bg-opacity-10">
+                                <div class="card-body text-center p-2">
+                                    <div class="h6 text-muted">Средний срок</div>
+                                    <div class="h6 fw-bold">${stats.averageTime} мес.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Таблица истории -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Цель</th>
+                                    <th>Стоимость</th>
+                                    <th>Срок</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${history.map(item => `
+                                    <tr>
+                                        <td>
+                                            <small>${item.date}</small><br>
+                                            <small class="text-muted">${item.time}</small>
+                                        </td>
+                                        <td>${item.dreamName}</td>
+                                        <td>${formatCurrency(item.calculationData.totalCost)}</td>
+                                        <td>${item.results.months} мес.</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="app.loadCalculation('${item.id}')">
+                                                🔄
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="app.deleteCalculation('${item.id}')">
+                                                🗑️
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Кнопки управления -->
+                    <div class="d-flex gap-2 justify-content-end mt-3">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="app.exportHistory()">
+                            📥 Экспорт
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="app.clearHistory()">
+                            🗑️ Очистить историю
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="app.closeHistory()">
+                            ✕ Закрыть
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Вставляем историю в контейнер
+        const container = document.getElementById('history-container');
+        if (container) {
+            container.innerHTML = historyHTML;
+            container.style.display = 'block';
+        }
+    }
+
+    /**
+     * Загружает расчёт из истории
+     * @param {string} id - ID расчёта
+     */
+    loadCalculation(id) {
+        const history = this.storageManager.getHistory();
+        const calculation = history.find(item => item.id === id);
+        
+        if (calculation) {
+            // Заполняем форму
+            this.elements.totalCostInput.value = calculation.calculationData.totalCost;
+            this.elements.initialAmountInput.value = calculation.calculationData.initialAmount;
+            this.elements.monthlySaveInput.value = calculation.calculationData.monthlySave;
+            
+            // Показываем уведомление
+            this.showNotification(`Расчёт "${calculation.dreamName}" загружен`, 'success');
+            
+            // Прокручиваем к форме
+            this.elements.totalCostInput.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    /**
+     * Удаляет расчёт из истории
+     * @param {string} id - ID расчёта
+     */
+    deleteCalculation(id) {
+        if (confirm('Удалить этот расчёт из истории?')) {
+            this.storageManager.removeCalculation(id);
+            this.showHistory(); // Обновляем отображение
+            this.showNotification('Расчёт удалён', 'success');
+        }
+    }
+
+    /**
+     * Экспортирует историю
+     */
+    exportHistory() {
+        const data = this.storageManager.exportHistory();
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dreamcalc_history_${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        URL.revokeObjectURL(url);
+        this.showNotification('История экспортирована', 'success');
+    }
+
+    /**
+     * Очищает историю
+     */
+    clearHistory() {
+        if (confirm('Очистить всю историю расчётов?')) {
+            this.storageManager.clearHistory();
+            const historyContainer = document.getElementById('history-container');
+            if (historyContainer) {
+                historyContainer.innerHTML = '';
+                historyContainer.style.display = 'none';
+            }
+            this.showNotification('История очищена', 'success');
+        }
+    }
+
+    /**
+     * Закрывает панель истории
+     */
+    closeHistory() {
+        const historyContainer = document.getElementById('history-container');
+        if (historyContainer) {
+            historyContainer.style.display = 'none';
+        }
+    }
+
+    /**
+     * Показывает уведомление
+     * @param {string} message - Сообщение
+     * @param {string} type - Тип (success, error, info, warning)
+     */
+    showNotification(message, type = 'info') {
+        const alertClass = {
+            success: 'alert-success',
+            error: 'alert-danger',
+            info: 'alert-info',
+            warning: 'alert-warning'
+        }[type] || 'alert-info';
+
+        const alertHTML = `
+            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+
+        // Вставляем уведомление в верхней части страницы
+        const container = document.querySelector('.container');
+        if (container) {
+            container.insertAdjacentHTML('afterbegin', alertHTML);
+            
+            // Автоматически скрываем через 5 секунд
+            setTimeout(() => {
+                const alert = container.querySelector('.alert');
+                if (alert) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
     }
     
     /**
@@ -543,6 +796,13 @@ class DreamCalcApp {
         
         // Очищаем результаты
         this.elements.resultsPlaceholder.innerHTML = '';
+        
+        // Очищаем историю из UI
+        const historyContainer = document.getElementById('history-container');
+        if (historyContainer) {
+            historyContainer.innerHTML = '';
+            historyContainer.style.display = 'none';
+        }
         
         debugLog('Приложение сброшено', 'log');
     }
