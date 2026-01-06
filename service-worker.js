@@ -1,20 +1,38 @@
 /**
  * Service Worker для DreamCalc PWA
  * Обеспечивает оффлайн-работу и кэширование
+ * Версия: 2.1.0 (с поддержкой модулей хедера и футера)
+ * Адаптирован для локальной разработки
  */
 
-const CACHE_NAME = 'dreamcalc-v1.2';
+const CACHE_NAME = 'dreamcalc-v2.1.0';
 const urlsToCache = [
-  '/DreamCalc/',
-  '/DreamCalc/index.html',
-  '/DreamCalc/styles/main.css',
-  '/DreamCalc/scripts/app.js',
-  '/DreamCalc/scripts/calculator.js',
-  '/DreamCalc/scripts/uiComponents.js',
-  '/DreamCalc/scripts/dreamData.js',
-  '/DreamCalc/scripts/utils.js',
-  '/DreamCalc/scripts/storage.js',
-  '/DreamCalc/scripts/charts.js',
+  // Основные файлы (относительные пути для локальной разработки)
+  './',
+  './index.html',
+  './styles/main.css',
+  './manifest.json',
+  
+  // Основные скрипты
+  './scripts/app.js',
+  './scripts/calculator.js',
+  './scripts/uiComponents.js',
+  './scripts/dreamData.js',
+  './scripts/utils.js',
+  './scripts/storage.js',
+  './scripts/charts.js',
+  
+  // Модуль хедера
+  './modules/header/header.html',
+  './modules/header/header.css',
+  './modules/header/header.js',
+  
+  // Модуль футера
+  './modules/footer/footer.html',
+  './modules/footer/footer.css',
+  './modules/footer/footer.js',
+  
+  // Внешние зависимости
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
   'https://cdn.jsdelivr.net/npm/chart.js',
@@ -23,31 +41,42 @@ const urlsToCache = [
 
 // Установка Service Worker
 self.addEventListener('install', event => {
-  console.log('[Service Worker] Установка');
+  console.log('[Service Worker] Установка v2.1.0 для локальной разработки');
   
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('[Service Worker] Кэшируем файлы');
-        return cache.addAll(urlsToCache);
+        console.log('[Service Worker] Кэшируем основные файлы');
+        
+        // Кэшируем основные файлы (игнорируем ошибки для внешних ресурсов)
+        return Promise.all(
+          urlsToCache.map(url => {
+            return cache.add(url).catch(error => {
+              console.log(`[Service Worker] Пропускаем (ошибка): ${url}`, error.message);
+              return Promise.resolve(); // Игнорируем ошибки
+            });
+          })
+        );
       })
       .then(() => {
         console.log('[Service Worker] Установка завершена');
         return self.skipWaiting();
+      })
+      .catch(error => {
+        console.error('[Service Worker] Критическая ошибка:', error);
       })
   );
 });
 
 // Активация Service Worker
 self.addEventListener('activate', event => {
-  console.log('[Service Worker] Активация');
+  console.log('[Service Worker] Активация v2.1.0');
   
-  // Удаляем старые кэши
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
+          if (cacheName !== CACHE_NAME && cacheName.startsWith('dreamcalc-')) {
             console.log('[Service Worker] Удаляем старый кэш:', cacheName);
             return caches.delete(cacheName);
           }
@@ -62,84 +91,48 @@ self.addEventListener('activate', event => {
 
 // Перехват запросов
 self.addEventListener('fetch', event => {
-  // Пропускаем запросы к Chart.js и другим CDN (они уже в кэше)
-  if (event.request.url.includes('cdn.jsdelivr.net')) {
-    return;
-  }
-  
+  // Для локальной разработки обрабатываем все запросы
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Если файл есть в кэше, возвращаем его
+        // Если есть в кэше, возвращаем
         if (response) {
-          console.log('[Service Worker] Используем кэш:', event.request.url);
           return response;
         }
         
-        // Иначе загружаем из сети
-        console.log('[Service Worker] Загружаем из сети:', event.request.url);
+        // Загружаем из сети
         return fetch(event.request)
           .then(response => {
-            // Проверяем валидный ли ответ
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
+            // Кэшируем только успешные ответы
+            if (response && response.status === 200) {
+              const responseToCache = response.clone();
+              caches.open(CACHE_NAME)
+                .then(cache => {
+                  cache.put(event.request, responseToCache);
+                });
             }
-            
-            // Клонируем ответ (поток можно прочитать только один раз)
-            const responseToCache = response.clone();
-            
-            // Добавляем в кэш для будущих запросов
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-                console.log('[Service Worker] Добавлено в кэш:', event.request.url);
-              });
-            
             return response;
           })
           .catch(error => {
-            console.log('[Service Worker] Ошибка загрузки:', error);
+            console.log('[Service Worker] Ошибка загрузки:', event.request.url);
             
-            // Для HTML-страниц показываем оффлайн-страницу
+            // Для HTML страниц возвращаем заглушку
             if (event.request.headers.get('accept').includes('text/html')) {
-              return caches.match('/DreamCalc/offline.html')
-                .then(response => response || new Response('Приложение недоступно оффлайн'));
+              return new Response(
+                '<!DOCTYPE html><html><head><title>DreamCalc - Оффлайн</title><style>body{font-family:Inter,sans-serif;padding:20px;text-align:center}h1{color:#2563eb}p{color:#64748b}</style></head><body><h1>📴 Оффлайн режим</h1><p>DreamCalc работает оффлайн. Обновите страницу при восстановлении соединения.</p></body></html>',
+                { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+              );
             }
             
-            // Для других файлов возвращаем заглушку
-            return new Response('Оффлайн', {
-              status: 503,
-              statusText: 'Service Unavailable',
-              headers: new Headers({
-                'Content-Type': 'text/plain'
-              })
-            });
+            return new Response('Оффлайн', { status: 503 });
           });
       })
   );
 });
 
-// Получение сообщений от клиента
+// Сообщения от клиента
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
-
-// Фоновая синхронизация (для будущих функций)
-self.addEventListener('sync', event => {
-  console.log('[Service Worker] Фоновая синхронизация:', event.tag);
-  
-  if (event.tag === 'sync-history') {
-    event.waitUntil(syncHistory());
-  }
-});
-
-/**
- * Синхронизация истории (заглушка для будущего)
- */
-async function syncHistory() {
-  console.log('[Service Worker] Синхронизация истории...');
-  // В будущем здесь можно синхронизировать историю с облаком
-  return Promise.resolve();
-}

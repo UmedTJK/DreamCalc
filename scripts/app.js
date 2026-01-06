@@ -1,6 +1,7 @@
 /**
  * Главный модуль DreamCalc
  * Инициализация приложения, управление состоянием и событиями
+ * Версия: 2.1.0 (с модульным хедером)
  */
 
 // Импортируем все необходимые модули
@@ -26,7 +27,8 @@ class DreamCalcApp {
                 monthlySave: 0
             },
             results: null,
-            isLoading: false
+            isLoading: false,
+            currentPage: 'calculator'
         };
         
         // Проверяем онлайн/оффлайн статус
@@ -38,8 +40,9 @@ class DreamCalcApp {
         // Менеджер графиков
         this.chartManager = chartManager;
         
-        // Модуль футера
+        // Модули
         this.footerModule = null;
+        this.headerModule = null;
         
         // Ссылки на DOM-элементы
         this.elements = {
@@ -47,7 +50,9 @@ class DreamCalcApp {
             dreamGridContainer: null,
             inputFormContainer: null,
             customNameInput: null,
-            resultsContainer: null
+            resultsContainer: null,
+            headerContainer: null,
+            footerContainer: null
         };
         
         // Инициализация при запуске
@@ -58,10 +63,13 @@ class DreamCalcApp {
      * Инициализация приложения
      */
     init() {
-        debugLog('Инициализация DreamCalc', 'log');
+        debugLog('Инициализация DreamCalc v2.1.0', 'log');
         
         // Находим основные элементы
         this.findElements();
+        
+        // Инициализируем модули
+        this.initModules();
         
         // Рендерим начальный интерфейс
         this.renderInitialUI();
@@ -76,16 +84,76 @@ class DreamCalcApp {
         window.addEventListener('online', () => this.checkConnectionStatus());
         window.addEventListener('offline', () => this.checkConnectionStatus());
         
-        // Инициализация модуля футера после загрузки
-        this.initFooterModule();
-        
         debugLog('Приложение готово к работе', 'log');
+    }
+    
+    /**
+     * Инициализация модулей
+     */
+    initModules() {
+        this.initHeaderModule();
+        this.initFooterModule();
+    }
+    
+    /**
+     * Инициализация модуля хедера
+     */
+    initHeaderModule() {
+        debugLog('Инициализация модуля хедера...', 'log');
+        
+        // Ждем загрузки модуля хедера
+        const checkHeaderModule = () => {
+            if (window.HeaderModule) {
+                this.headerModule = window.HeaderModule;
+                debugLog('Модуль хедера подключен', 'log');
+                
+                // Устанавливаем сохраненную тему если есть
+                const savedTheme = localStorage.getItem('dreamcalc-theme');
+                if (savedTheme && this.headerModule.syncTheme) {
+                    this.headerModule.syncTheme();
+                }
+                
+                // Настраиваем обработчики событий хедера
+                this.setupHeaderEventListeners();
+                
+                // Обновляем статистику в хедере
+                setTimeout(() => {
+                    if (this.headerModule.refreshStats) {
+                        this.headerModule.refreshStats();
+                    }
+                }, 1500);
+                
+                return true;
+            }
+            return false;
+        };
+        
+        // Пытаемся сразу
+        if (!checkHeaderModule()) {
+            // Если не сразу, ждем немного
+            const intervalId = setInterval(() => {
+                if (checkHeaderModule()) {
+                    clearInterval(intervalId);
+                }
+            }, 500);
+            
+            // Останавливаем через 10 секунд если не загрузился
+            setTimeout(() => {
+                clearInterval(intervalId);
+                if (!this.headerModule) {
+                    debugLog('Модуль хедера не загрузился', 'warn');
+                    this.renderFallbackHeader();
+                }
+            }, 10000);
+        }
     }
     
     /**
      * Инициализация модуля футера
      */
     initFooterModule() {
+        debugLog('Инициализация модуля футера...', 'log');
+        
         // Ждем загрузки модуля футера
         const checkFooterModule = () => {
             if (window.FooterModule) {
@@ -103,7 +171,7 @@ class DreamCalcApp {
                     if (this.footerModule.refreshStats) {
                         this.footerModule.refreshStats();
                     }
-                }, 1000);
+                }, 2000);
                 
                 return true;
             }
@@ -130,6 +198,76 @@ class DreamCalcApp {
     }
     
     /**
+     * Настройка обработчиков событий хедера
+     */
+    setupHeaderEventListeners() {
+        if (!this.headerModule) return;
+        
+        // Событие навигации из хедера
+        window.addEventListener('header-navigation', (e) => {
+            const page = e.detail.page;
+            this.handleNavigation(page);
+        });
+        
+        // Событие смены темы
+        window.addEventListener('header-theme-change', (e) => {
+            const theme = e.detail.theme;
+            this.handleThemeChange(theme);
+        });
+        
+        // Событие обновления статистики
+        window.addEventListener('header-refresh-stats', () => {
+            this.refreshAllStats();
+        });
+    }
+    
+    /**
+     * Обработка навигации
+     */
+    handleNavigation(page) {
+        this.state.currentPage = page;
+        
+        switch(page) {
+            case 'calculator':
+                // Прокручиваем к калькулятору
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+                break;
+                
+            case 'history':
+                this.showHistory();
+                break;
+                
+            case 'goals':
+                this.showNotification('Функция "Мои цели" в разработке', 'info');
+                break;
+        }
+    }
+    
+    /**
+     * Обработка смены темы
+     */
+    handleThemeChange(theme) {
+        // Синхронизируем с футером
+        if (this.footerModule && this.footerModule.setTheme) {
+            this.footerModule.setTheme(theme);
+        }
+        
+        // Обновляем состояние
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('dreamcalc-theme', theme);
+        
+        // Обновляем графики если они есть
+        if (this.state.results) {
+            setTimeout(() => {
+                this.chartManager.updateTheme(theme);
+            }, 100);
+        }
+    }
+    
+    /**
      * Проверяет онлайн статус и показывает уведомление
      */
     checkConnectionStatus() {
@@ -142,6 +280,14 @@ class DreamCalcApp {
             this.showNotification('🌐 Соединение восстановлено!', 'success');
         }
         
+        // Обновляем статус в модулях
+        if (this.headerModule && this.headerModule.updateOnlineStatus) {
+            this.headerModule.updateOnlineStatus();
+        }
+        if (this.footerModule && this.footerModule.updateOnlineStatus) {
+            this.footerModule.updateOnlineStatus();
+        }
+        
         return this.isOnline;
     }
     
@@ -150,6 +296,8 @@ class DreamCalcApp {
      */
     findElements() {
         this.elements.mainContent = document.getElementById('main-content');
+        this.elements.headerContainer = document.getElementById('header-container');
+        this.elements.footerContainer = document.getElementById('footer-container');
         this.elements.resultsContainer = document.createElement('div');
         this.elements.resultsContainer.id = 'results-container';
         
@@ -162,9 +310,12 @@ class DreamCalcApp {
     renderInitialUI() {
         const { mainContent } = this.elements;
         
+        // Если есть хедер, добавляем отступ сверху
+        const headerMargin = this.headerModule ? 'mt-4' : '';
+        
         // Создаём структуру приложения
         mainContent.innerHTML = `
-            <div class="row">
+            <div class="row ${headerMargin}">
                 <!-- Левая колонка: выбор цели -->
                 <div class="col-lg-6 mb-4">
                     <div class="card shadow-sm h-100">
@@ -223,6 +374,38 @@ class DreamCalcApp {
         // Рендерим компоненты
         this.renderDreamGrid();
         this.renderInputForm();
+    }
+    
+    /**
+     * Резервный хедер на случай если модуль не загрузился
+     */
+    renderFallbackHeader() {
+        const { headerContainer } = this.elements;
+        
+        if (!headerContainer) return;
+        
+        const fallbackHeader = `
+            <nav class="navbar navbar-light bg-light mb-4">
+                <div class="container">
+                    <a class="navbar-brand" href="#">
+                        <span class="me-2">🎯</span>
+                        <strong>DreamCalc</strong>
+                        <small class="text-muted ms-2">v2.1.0</small>
+                    </a>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="app.toggleTheme()">
+                            🌓 Тема
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="app.showHistory()">
+                            📊 История
+                        </button>
+                    </div>
+                </div>
+            </nav>
+        `;
+        
+        headerContainer.innerHTML = fallbackHeader;
+        debugLog('Загружен резервный хедер', 'info');
     }
     
     /**
@@ -399,10 +582,8 @@ class DreamCalcApp {
             // Сохраняем в историю
             this.storageManager.saveCalculation(calculationData, results);
 
-            // Обновляем статистику в футере
-            if (this.footerModule && this.footerModule.refreshStats) {
-                this.footerModule.refreshStats();
-            }
+            // Обновляем статистику во всех модулях
+            this.refreshAllStats();
 
             // Форматируем результаты для отображения
             const formattedResults = formatResults({
@@ -585,6 +766,11 @@ class DreamCalcApp {
                         <button class="btn btn-outline-info" onclick="app.exportChart()">
                             📊 Экспорт графика
                         </button>
+                        ${this.headerModule ? `
+                        <button class="btn btn-outline-secondary" onclick="headerModule.showStats()">
+                            📈 Статистика
+                        </button>
+                        ` : ''}
                     </div>
                 </div>
             </div>
@@ -803,6 +989,11 @@ class DreamCalcApp {
             container.style.display = 'block';
         }
         
+        // Обновляем навигацию в хедере если он есть
+        if (this.headerModule && this.headerModule.navigateTo) {
+            this.headerModule.navigateTo('history');
+        }
+        
         // Прокручиваем к истории
         container.scrollIntoView({ behavior: 'smooth' });
     }
@@ -821,11 +1012,29 @@ class DreamCalcApp {
             this.elements.initialAmountInput.value = calculation.calculationData.initialAmount;
             this.elements.monthlySaveInput.value = calculation.calculationData.monthlySave;
             
+            // Устанавливаем цель
+            this.state.selectedDream = calculation.dreamName;
+            this.state.dreamType = 'custom';
+            
+            // Обновляем поле своей цели если оно есть
+            if (this.elements.customNameInput) {
+                this.elements.customNameInput.value = calculation.dreamName;
+                const customSection = document.getElementById('custom-name-section');
+                if (customSection) {
+                    customSection.style.display = 'block';
+                }
+            }
+            
             // Показываем уведомление
             this.showNotification(`Расчёт "${calculation.dreamName}" загружен`, 'success');
             
             // Прокручиваем к форме
             this.elements.totalCostInput.scrollIntoView({ behavior: 'smooth' });
+            
+            // Обновляем навигацию
+            if (this.headerModule && this.headerModule.navigateTo) {
+                this.headerModule.navigateTo('calculator');
+            }
         }
     }
 
@@ -839,10 +1048,8 @@ class DreamCalcApp {
             this.showHistory(); // Обновляем отображение
             this.showNotification('Расчёт удалён', 'success');
             
-            // Обновляем статистику в футере
-            if (this.footerModule && this.footerModule.refreshStats) {
-                this.footerModule.refreshStats();
-            }
+            // Обновляем статистику во всех модулях
+            this.refreshAllStats();
         }
     }
 
@@ -878,10 +1085,8 @@ class DreamCalcApp {
             }
             this.showNotification('История очищена', 'success');
             
-            // Обновляем статистику в футере
-            if (this.footerModule && this.footerModule.refreshStats) {
-                this.footerModule.refreshStats();
-            }
+            // Обновляем статистику во всех модулях
+            this.refreshAllStats();
         }
     }
 
@@ -892,6 +1097,11 @@ class DreamCalcApp {
         const historyContainer = document.getElementById('history-container');
         if (historyContainer) {
             historyContainer.style.display = 'none';
+        }
+        
+        // Обновляем навигацию
+        if (this.headerModule && this.headerModule.navigateTo) {
+            this.headerModule.navigateTo('calculator');
         }
     }
 
@@ -938,7 +1148,7 @@ class DreamCalcApp {
         const debugPanel = document.createElement('div');
         debugPanel.className = 'mt-4 p-3 border rounded bg-light';
         debugPanel.innerHTML = `
-            <h6 class="mb-2">🔧 Отладка</h6>
+            <h6 class="mb-2">🔧 Отладка (v2.1.0)</h6>
             <div class="btn-group btn-group-sm">
                 <button class="btn btn-outline-secondary" onclick="app.printState()">
                     🖨️ Состояние
@@ -948,6 +1158,9 @@ class DreamCalcApp {
                 </button>
                 <button class="btn btn-outline-secondary" onclick="app.testCalculation()">
                     🧪 Тест
+                </button>
+                <button class="btn btn-outline-secondary" onclick="app.testHeader()">
+                    🧪 Хедер
                 </button>
             </div>
             <div class="mt-2">
@@ -969,7 +1182,9 @@ class DreamCalcApp {
      */
     printState() {
         console.log('📊 Состояние приложения:', this.state);
-        console.log('📊 Состояние футера:', this.footerModule ? this.footerModule.stats : 'Не загружен');
+        console.log('🎯 Модуль хедера:', this.headerModule ? 'Загружен' : 'Не загружен');
+        console.log('📊 Модуль футера:', this.footerModule ? 'Загружен' : 'Не загружен');
+        console.log('🌐 Онлайн статус:', this.isOnline);
         debugLog('Состояние выведено в консоль', 'log');
     }
     
@@ -983,7 +1198,8 @@ class DreamCalcApp {
                 monthlySave: 0
             },
             results: null,
-            isLoading: false
+            isLoading: false,
+            currentPage: 'calculator'
         };
         
         // Уничтожаем графики
@@ -1003,10 +1219,13 @@ class DreamCalcApp {
             historyContainer.style.display = 'none';
         }
         
-        // Обновляем статистику в футере
-        if (this.footerModule && this.footerModule.refreshStats) {
-            this.footerModule.refreshStats();
+        // Обновляем навигацию
+        if (this.headerModule && this.headerModule.navigateTo) {
+            this.headerModule.navigateTo('calculator');
         }
+        
+        // Обновляем статистику во всех модулях
+        this.refreshAllStats();
         
         debugLog('Приложение сброшено', 'log');
     }
@@ -1026,6 +1245,23 @@ class DreamCalcApp {
         this.handleCalculate();
         
         debugLog('Тестовый расчёт выполнен', 'log');
+    }
+    
+    testHeader() {
+        if (this.headerModule) {
+            console.log('Тестирование хедера:');
+            console.log('- Статистика:', this.headerModule.stats);
+            console.log('- Текущая тема:', this.headerModule.getCurrentTheme ? this.headerModule.getCurrentTheme() : 'unknown');
+            
+            // Тестируем методы
+            if (this.headerModule.showStats) {
+                this.headerModule.showStats();
+            }
+            
+            debugLog('Хедер протестирован', 'log');
+        } else {
+            debugLog('Хедер не загружен для тестирования', 'warn');
+        }
     }
     
     recalculate() {
@@ -1066,12 +1302,42 @@ class DreamCalcApp {
     }
     
     /**
-     * Обновляет статистику в футере (публичный метод)
+     * Переключение темы (для резервного хедера)
      */
-    refreshFooterStats() {
+    toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('dreamcalc-theme', newTheme);
+        
+        // Обновляем графики
+        if (this.state.results) {
+            setTimeout(() => {
+                this.chartManager.updateTheme(newTheme);
+            }, 100);
+        }
+        
+        this.showNotification(`Тема изменена на ${newTheme === 'dark' ? 'тёмную' : 'светлую'}`, 'info');
+    }
+    
+    /**
+     * Обновление статистики во всех модулях
+     */
+    refreshAllStats() {
+        if (this.headerModule && this.headerModule.refreshStats) {
+            this.headerModule.refreshStats();
+        }
         if (this.footerModule && this.footerModule.refreshStats) {
             this.footerModule.refreshStats();
         }
+    }
+    
+    /**
+     * Получение текущей статистики (публичный метод)
+     */
+    getCurrentStats() {
+        return this.storageManager.getStatistics();
     }
 }
 
