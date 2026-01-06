@@ -1,0 +1,336 @@
+/* 
+ * Стили для модуля хедера DreamCalc
+ * Версия: 2.0.0
+ */
+
+/* Основные стили хедера */
+.dreamcalc-header {
+    background-color: var(--header-bg, #ffffff);
+    border-bottom: 1px solid var(--header-border, #e5e7eb);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+}
+
+/* Тёмная тема */
+[data-theme="dark"] .dreamcalc-header {
+    --header-bg: #111827;
+    --header-text: #f3f4f6;
+    --header-link: #60a5fa;
+    --header-link-hover: #93c5fd;
+    --header-border: #374151;
+    --header-banner-bg: rgba(30, 41, 59, 0.7);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Бренд хедера */
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    color: var(--header-text, #1f2937);
+    text-decoration: none;
+}
+
+.header-icon {
+    font-size: 1.8rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+.header-title {
+    font-size: 1.5rem;
+    background: linear-gradient(45deg, #2563eb, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.header-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    background: linear-gradient(45deg, #10b981, #3b82f6);
+    color: white;
+    border-radius: 12px;
+    font-weight: 700;
+    margin-left: 4px;
+}
+
+/* Навигация */
+.nav-link {
+    color: var(--header-text, #6b7280) !important;
+    font-weight: 500;
+    padding: 8px 16px !important;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--header-link, #2563eb) !important;
+    background-color: rgba(37, 99, 235, 0.1);
+    transform: translateY(-1px);
+}
+
+.nav-link.active {
+    font-weight: 700;
+}
+
+.header-nav-icon {
+    font-size: 1.1rem;
+}
+
+/* Элементы управления */
+.header-controls {
+    padding: 5px 0;
+}
+
+.header-pwa-status {
+    font-size: 1.2rem;
+    opacity: 0.8;
+    cursor: help;
+    transition: transform 0.2s;
+}
+
+.header-pwa-status:hover {
+    transform: scale(1.1);
+}
+
+.header-status {
+    padding: 4px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.05);
+    cursor: help;
+}
+
+[data-theme="dark"] .header-status {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Баннер */
+.header-banner {
+    background: linear-gradient(135deg, var(--header-banner-bg, rgba(37, 99, 235, 0.05)), rgba(124, 58, 237, 0.05));
+    padding: 20px 0;
+    border-top: 1px solid var(--header-border, #e5e7eb);
+    animation: slideDown 0.5s ease-out;
+}
+
+.banner-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    color: var(--header-text, #1f2937);
+    line-height: 1.2;
+}
+
+.banner-stats {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    color: var(--header-text, #6b7280);
+}
+
+.stats-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.stats-divider {
+    opacity: 0.5;
+}
+
+.banner-description {
+    font-size: 1rem;
+    color: var(--header-text, #6b7280);
+    opacity: 0.9;
+    max-width: 600px;
+}
+
+.banner-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.banner-action-btn {
+    width: 100%;
+    padding: 10px 16px;
+    font-weight: 500;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.banner-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Анимации */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 992px) {
+    .header-banner .row {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .banner-stats {
+        justify-content: center;
+    }
+    
+    .banner-description {
+        margin: 0 auto 20px;
+    }
+    
+    .banner-actions {
+        max-width: 300px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-title {
+        font-size: 1.3rem;
+    }
+    
+    .header-icon {
+        font-size: 1.5rem;
+    }
+    
+    .banner-title {
+        font-size: 1.5rem;
+    }
+    
+    .header-controls {
+        margin-top: 10px;
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .banner-stats {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .stats-divider {
+        display: none;
+    }
+    
+    .nav-link {
+        padding: 8px 12px !important;
+        justify-content: center;
+    }
+}
+
+/* Специальные стили для PWA */
+@media (display-mode: standalone) {
+    .dreamcalc-header {
+        padding-top: env(safe-area-inset-top);
+    }
+    
+    .header-pwa-status::after {
+        content: " ✓";
+        color: #10b981;
+        font-weight: bold;
+    }
+}
+
+/* Анимация появления */
+.dreamcalc-header {
+    animation: fadeInDown 0.5s ease-out;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Индикатор статуса */
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: block;
+}
+
+.status-indicator.online {
+    background-color: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: pulse 2s infinite;
+}
+
+.status-indicator.offline {
+    background-color: #ef4444;
+}
+
+.status-indicator.slow {
+    background-color: #f59e0b;
+}
+
+/* Дропдаун меню */
+.dropdown-menu {
+    border: 1px solid var(--header-border, #e5e7eb);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.2s ease-out;
+}
+
+[data-theme="dark"] .dropdown-menu {
+    background-color: #1f2937;
+    border-color: #374151;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

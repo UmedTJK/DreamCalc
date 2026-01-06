@@ -1,0 +1,66 @@
+<!-- Модуль хедера DreamCalc -->
+<header class="dreamcalc-header">
+    <!-- Верхняя панель навигации -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <!-- Логотип -->
+            <a class="navbar-brand" href="#">
+                <div class="header-brand">
+                    <span class="header-icon">🎯</span>
+                    <span class="header-title">DreamCalc</span>
+                    <span class="header-badge">Pro</span>
+                    <span class="header-title"> - Планируйте сейчас свои мечты с DreamCalc</span>
+                </div>
+            </a>
+
+            <!-- Бургер меню для мобильных -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Основная навигация -->
+            <div class="collapse navbar-collapse" id="navbarContent">
+
+                <!-- Правая часть: элементы управления -->
+                <div class="header-controls d-flex align-items-center gap-2">
+
+                    <!-- Кнопка установки PWA -->
+                    <button class="btn btn-sm btn-success" id="install-button" style="display: none;">
+                        <i class="me-1">📱</i> Установить
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Баннер приложения -->
+    <div class="header-banner" id="header-banner">
+        <div class="container">
+            <div class="row align-items-center">
+                <!-- Приветствие и статистика -->
+                <div class="col-md-12"> <!-- Изменено с col-md-8 на col-md-12 -->
+                    <div class="banner-stats" id="banner-stats">
+                        <span class="stats-item">
+                            <strong id="total-calculations">0</strong> расчётов
+                        </span>
+                        <span class="stats-divider">•</span>
+                        <span class="stats-item">
+                            Самый популярный: <strong id="most-common-goal">—</strong>
+                        </span>
+                        <span class="stats-divider">•</span>
+                        <span class="stats-item">
+                            <strong id="total-amount">0</strong> сомони в планах
+                        </span>
+                    </div>
+                    <p class="banner-description">
+                        Рассчитайте, сколько времени потребуется для достижения вашей финансовой цели
+                    </p>
+                </div>
+                
+
+            </div>
+        </div>
+    </div>
+</header>
+
